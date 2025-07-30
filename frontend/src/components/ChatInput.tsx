@@ -4,17 +4,17 @@ import {
   Flex, 
   Input, 
   Button, 
-  IconButton,
-  useColorModeValue
+  IconButton
 } from '@chakra-ui/react';
+import { useColorModeValue } from '@chakra-ui/color-mode';
 import { ArrowUpIcon } from '@chakra-ui/icons';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
-  isLoading: boolean;
+  loading?: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, loading = false }) => {
   const [message, setMessage] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const bgColor = useColorModeValue('white', 'gray.700');
@@ -29,7 +29,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !isLoading) {
+    if (message.trim() && !loading) {
       onSendMessage(message);
       setMessage('');
     }
@@ -54,16 +54,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
           placeholder="Ask a question about your documentation..."
           size="md"
           mr={2}
-          disabled={isLoading}
+          disabled={loading}
         />
         <IconButton
           colorScheme="blue"
           aria-label="Send message"
-          icon={<ArrowUpIcon />}
           type="submit"
-          isLoading={isLoading}
-          isDisabled={!message.trim() || isLoading}
-        />
+          loading={loading}
+          disabled={!message.trim() || loading}
+        >
+          <ArrowUpIcon />
+        </IconButton>
       </Flex>
     </Box>
   );

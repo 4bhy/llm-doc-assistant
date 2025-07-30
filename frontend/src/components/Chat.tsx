@@ -4,14 +4,16 @@ import {
   VStack, 
   Text, 
   Button, 
-  Alert, 
-  AlertIcon, 
-  AlertTitle, 
-  AlertDescription,
   Flex,
-  Heading,
-  Divider
+  Heading
 } from '@chakra-ui/react';
+import {
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription
+} from '@chakra-ui/alert';
+import { Divider } from '@chakra-ui/layout';
 import { useToast } from '@chakra-ui/toast';
 import { useColorModeValue } from '@chakra-ui/color-mode';
 import axios from 'axios';
@@ -175,7 +177,7 @@ const Chat: React.FC<ChatProps> = ({ apiUrl = 'http://localhost:3001/api' }) => 
         overflowY="auto" 
         p={4}
       >
-        <VStack spacing={4} align="stretch">
+        <VStack gap="4" alignItems="stretch">
           {messages.map((msg, index) => (
             <Message
               key={index}
@@ -234,7 +236,7 @@ const Chat: React.FC<ChatProps> = ({ apiUrl = 'http://localhost:3001/api' }) => 
       <Divider />
       
       <Box p={4}>
-        <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+        <ChatInput onSendMessage={handleSendMessage} loading={isLoading} />
       </Box>
     </Box>
   );
