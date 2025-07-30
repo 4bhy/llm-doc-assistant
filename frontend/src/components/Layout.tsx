@@ -1,6 +1,7 @@
 import React from 'react';
-import { Box, Flex, Container, Heading, Text, useColorMode, Button } from '@chakra-ui/react';
+import { Box, Flex, Container, Heading, Text, Button } from '@chakra-ui/react';
 import { MoonIcon, SunIcon } from '@chakra-ui/icons';
+import { useColorMode } from '@chakra-ui/color-mode';
 
 interface LayoutProps {
   children: React.ReactNode;

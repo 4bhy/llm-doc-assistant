@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ChakraProvider, Tabs, TabList, TabPanels, Tab, TabPanel, Box, Container } from '@chakra-ui/react';
+import { ChakraProvider, Box, Container } from '@chakra-ui/react';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@chakra-ui/tabs';
 import Layout from '../components/Layout';
 import Chat from '../components/Chat';
 import AdminInterface from '../components/AdminInterface';
