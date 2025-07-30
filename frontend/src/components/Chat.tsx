@@ -4,16 +4,16 @@ import {
   VStack, 
   Text, 
   Button, 
-  useToast, 
   Alert, 
   AlertIcon, 
   AlertTitle, 
   AlertDescription,
   Flex,
   Heading,
-  Divider,
-  useColorModeValue
+  Divider
 } from '@chakra-ui/react';
+import { useToast } from '@chakra-ui/toast';
+import { useColorModeValue } from '@chakra-ui/color-mode';
 import axios from 'axios';
 import Message from './Message';
 import ChatInput from './ChatInput';

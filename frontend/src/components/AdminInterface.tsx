@@ -2,31 +2,37 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Heading,
+  Badge,
+  Button,
+  Textarea,
+  Text,
+  Flex,
+  Spinner
+} from '@chakra-ui/react';
+import {
   Table,
   Thead,
   Tbody,
   Tr,
   Th,
-  Td,
-  Badge,
-  Button,
+  Td
+} from '@chakra-ui/table';
+import {
   Modal,
   ModalOverlay,
   ModalContent,
   ModalHeader,
   ModalFooter,
   ModalBody,
-  ModalCloseButton,
-  useDisclosure,
+  ModalCloseButton
+} from '@chakra-ui/modal';
+import { useDisclosure } from '@chakra-ui/hooks';
+import {
   FormControl,
-  FormLabel,
-  Textarea,
-  useToast,
-  Text,
-  Flex,
-  useColorModeValue,
-  Spinner
-} from '@chakra-ui/react';
+  FormLabel
+} from '@chakra-ui/form-control';
+import { useToast } from '@chakra-ui/toast';
+import { useColorModeValue } from '@chakra-ui/color-mode';
 import axios from 'axios';
 
 interface Escalation {
@@ -47,7 +53,7 @@ const AdminInterface: React.FC<AdminInterfaceProps> = ({ apiUrl = 'http://localh
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open: isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const bgColor = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
@@ -156,7 +162,7 @@ const AdminInterface: React.FC<AdminInterfaceProps> = ({ apiUrl = 'http://localh
           size="sm"
           colorScheme="blue"
           onClick={fetchEscalations}
-          isLoading={isLoading}
+          loading={isLoading}
         >
           Refresh
         </Button>
@@ -197,7 +203,7 @@ const AdminInterface: React.FC<AdminInterfaceProps> = ({ apiUrl = 'http://localh
                     size="xs"
                     colorScheme="blue"
                     onClick={() => handleViewEscalation(escalation)}
-                    isDisabled={escalation.status === 'resolved'}
+                    disabled={escalation.status === 'resolved'}
                   >
                     {escalation.status === 'resolved' ? 'View' : 'Respond'}
                   </Button>
@@ -262,8 +268,8 @@ const AdminInterface: React.FC<AdminInterfaceProps> = ({ apiUrl = 'http://localh
               <Button
                 colorScheme="blue"
                 onClick={handleResolveEscalation}
-                isLoading={isSubmitting}
-                isDisabled={!response.trim()}
+                loading={isSubmitting}
+                disabled={!response.trim()}
               >
                 Resolve
               </Button>
