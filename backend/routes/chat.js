@@ -9,11 +9,10 @@
 
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const config = require('../../config/app.config');
+// const path = require('path');
+// const config = require('../../config/app.config');
 
-// This will be implemented later when we set up the LangChain integration
-let chatService;
+const chatController = require('../controllers/chat.controller');
 
 /**
  * @route   POST /api/chat/message
@@ -29,7 +28,6 @@ router.post('/message', async (req, res) => {
     }
     
     // Process the message using the chat controller
-    const chatController = require('../controllers/chat.controller');
     const response = await chatController.processMessage(message, conversationId);
     
     res.status(200).json(response);
@@ -52,30 +50,9 @@ router.get('/history/:conversationId', async (req, res) => {
       return res.status(400).json({ error: 'Conversation ID is required' });
     }
     
-    // This will be implemented when we set up conversation storage
-    // For now, return a placeholder response
-    const history = {
-      conversationId,
-      messages: [
-        {
-          role: 'system',
-          content: 'I am an AI assistant that helps with your documentation.',
-          timestamp: new Date().toISOString(),
-        },
-        {
-          role: 'user',
-          content: 'Hello, can you help me find information about our product?',
-          timestamp: new Date().toISOString(),
-        },
-        {
-          role: 'assistant',
-          content: 'Of course! What specific information are you looking for?',
-          timestamp: new Date().toISOString(),
-        },
-      ],
-    };
-    
-    res.status(200).json(history);
+    const convo = chatController.getConversationHistory(conversationId);
+    if (!convo) return res.status(404).json({ error: 'Conversation not found' });
+    res.status(200).json(convo);
   } catch (error) {
     console.error('Error in chat history endpoint:', error);
     res.status(500).json({ error: 'Failed to retrieve chat history' });
@@ -95,15 +72,7 @@ router.post('/escalate', async (req, res) => {
       return res.status(400).json({ error: 'Conversation ID is required' });
     }
     
-    // This will be implemented when we set up the escalation system
-    // For now, return a placeholder response
-    const escalation = {
-      escalationId: 'esc-' + Date.now(),
-      conversationId,
-      status: 'pending',
-      timestamp: new Date().toISOString(),
-    };
-    
+    const escalation = await chatController.handleEscalation(conversationId, reason || 'User requested assistance');
     res.status(200).json(escalation);
   } catch (error) {
     console.error('Error in escalation endpoint:', error);

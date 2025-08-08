@@ -16,6 +16,7 @@ const { DocxLoader } = require("langchain/document_loaders/fs/docx");
 const { TextLoader } = require("langchain/document_loaders/fs/text");
 const { RecursiveCharacterTextSplitter } = require("langchain/text_splitter");
 const { Chroma } = require("langchain/vectorstores/chroma");
+const { ChromaClient } = require('chromadb');
 const { HuggingFaceTransformersEmbeddings } = require("@langchain/community/embeddings/hf_transformers");
 const config = require('../../config/app.config');
 
@@ -107,7 +108,7 @@ async function processFile(filePath) {
       embeddings,
       {
         collectionName: config.vectorDb.collectionName,
-        url: "http://localhost:8000", // ChromaDB server URL
+        url: config.vectorDb.url, // ChromaDB server URL
         collectionMetadata: {
           "hnsw:space": "cosine",
         },
@@ -173,17 +174,15 @@ async function processAllDocuments() {
 async function resetVectorStore() {
   try {
     console.log('Resetting vector database...');
-    
-    // Create a client to delete the collection
-    const client = new Chroma({
-      collectionName: config.vectorDb.collectionName,
-      url: "http://localhost:8000",
-      embeddingFunction: embeddings,
-    });
-    
-    // Delete the collection
-    await client.delete();
-    
+    const client = new ChromaClient({ path: config.vectorDb.url });
+    try {
+      await client.deleteCollection({ name: config.vectorDb.collectionName });
+      console.log('Deleted existing collection');
+    } catch (e) {
+      console.log('No existing collection to delete or deletion failed gracefully');
+    }
+    // Re-create collection for cleanliness
+    await client.createCollection({ name: config.vectorDb.collectionName });
     console.log('Vector database reset complete.');
   } catch (error) {
     console.error('Error resetting vector database:', error);

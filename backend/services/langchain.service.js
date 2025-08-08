@@ -38,7 +38,7 @@ class LangChainService {
       // Connect to ChromaDB
       this.vectorStore = new Chroma({
         collectionName: config.vectorDb.collectionName,
-        url: "http://localhost:8000", // ChromaDB server URL
+        url: config.vectorDb.url, // ChromaDB server URL from config
         embeddingFunction: this.embeddings,
       });
       
@@ -130,7 +130,7 @@ class LangChainService {
   async callLlamaServer(prompt) {
     try {
       // Configure the request to the llama.cpp server
-      const response = await axios.post('http://localhost:8080/completion', {
+      const response = await axios.post(`${config.llm.serverUrl}/completion`, {
         prompt,
         temperature: config.llm.temperature,
         top_p: config.llm.topP,
@@ -140,7 +140,8 @@ class LangChainService {
         timeout: 30000, // 30 seconds timeout
       });
       
-      return response.data.content;
+      // llama.cpp server returns { content: string } or may stream; handle basic case
+      return response.data?.content || String(response.data || '').toString();
     } catch (error) {
       console.error('Error calling llama.cpp server:', error);
       return "I'm sorry, I encountered an error while processing your request.";
@@ -229,7 +230,7 @@ class LangChainService {
       await this.vectorStore.collection.count();
       
       // Check llama.cpp server
-      await axios.get('http://localhost:8080/health');
+      await axios.get(`${config.llm.serverUrl}/health`);
       
       return true;
     } catch (error) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChakraProvider, Box, Container } from '@chakra-ui/react';
+import { ChakraProvider, Box, Container, defaultSystem } from '@chakra-ui/react';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from '@chakra-ui/tabs';
 import Layout from '../components/Layout';
 import Chat from '../components/Chat';
@@ -12,7 +12,7 @@ export default function Home() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   return (
-    <ChakraProvider>
+    <ChakraProvider value={defaultSystem}>
       <Layout>
         <Tabs 
           isFitted 
@@ -36,8 +36,5 @@ export default function Home() {
         </Tabs>
       </Layout>
     </ChakraProvider>
-  );
-}
-    </div>
   );
 }

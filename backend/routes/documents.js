@@ -10,7 +10,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const config = require('../../config/app.config');
+const processor = require('../services/processor');
 
 /**
  * @route   GET /api/documents
@@ -19,25 +19,7 @@ const config = require('../../config/app.config');
  */
 router.get('/', async (req, res) => {
   try {
-    // This will be implemented when we set up the document storage
-    // For now, return a placeholder response
-    const documents = [
-      {
-        id: 'doc-1',
-        filename: 'example-doc.pdf',
-        status: 'processed',
-        chunks: 42,
-        timestamp: new Date().toISOString(),
-      },
-      {
-        id: 'doc-2',
-        filename: 'user-manual.docx',
-        status: 'processed',
-        chunks: 78,
-        timestamp: new Date().toISOString(),
-      },
-    ];
-    
+    const documents = processor.listProcessedDocuments();
     res.status(200).json(documents);
   } catch (error) {
     console.error('Error in documents list endpoint:', error);
@@ -53,21 +35,12 @@ router.get('/', async (req, res) => {
 router.post('/ingest', async (req, res) => {
   try {
     const { filepath } = req.body;
-    
     if (!filepath) {
       return res.status(400).json({ error: 'File path is required' });
     }
-    
-    // This will be implemented when we set up the document ingestion
-    // For now, return a placeholder response
-    const ingestion = {
-      id: 'ing-' + Date.now(),
-      filename: path.basename(filepath),
-      status: 'pending',
-      timestamp: new Date().toISOString(),
-    };
-    
-    res.status(200).json(ingestion);
+    const absPath = path.isAbsolute(filepath) ? filepath : path.resolve(filepath);
+    const info = await processor.processFile(absPath);
+    res.status(200).json({ success: true, document: info });
   } catch (error) {
     console.error('Error in document ingestion endpoint:', error);
     res.status(500).json({ error: 'Failed to ingest document' });
@@ -82,27 +55,12 @@ router.post('/ingest', async (req, res) => {
 router.get('/:documentId', async (req, res) => {
   try {
     const { documentId } = req.params;
-    
     if (!documentId) {
       return res.status(400).json({ error: 'Document ID is required' });
     }
-    
-    // This will be implemented when we set up the document storage
-    // For now, return a placeholder response
-    const document = {
-      id: documentId,
-      filename: 'example-doc.pdf',
-      status: 'processed',
-      chunks: 42,
-      metadata: {
-        title: 'Example Document',
-        author: 'John Doe',
-        created: '2023-01-01T00:00:00Z',
-      },
-      timestamp: new Date().toISOString(),
-    };
-    
-    res.status(200).json(document);
+    const details = processor.getDocumentDetails(documentId);
+    if (!details) return res.status(404).json({ error: 'Document not found' });
+    res.status(200).json(details);
   } catch (error) {
     console.error('Error in document details endpoint:', error);
     res.status(500).json({ error: 'Failed to retrieve document details' });
@@ -117,17 +75,11 @@ router.get('/:documentId', async (req, res) => {
 router.delete('/:documentId', async (req, res) => {
   try {
     const { documentId } = req.params;
-    
     if (!documentId) {
       return res.status(400).json({ error: 'Document ID is required' });
     }
-    
-    // This will be implemented when we set up the document storage
-    // For now, return a placeholder response
-    res.status(200).json({ 
-      success: true,
-      message: `Document ${documentId} deleted successfully` 
-    });
+    await processor.deleteDocument(documentId);
+    res.status(200).json({ success: true, message: `Document ${documentId} deleted successfully` });
   } catch (error) {
     console.error('Error in document deletion endpoint:', error);
     res.status(500).json({ error: 'Failed to delete document' });

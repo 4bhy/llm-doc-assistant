@@ -10,7 +10,7 @@ module.exports = {
   server: {
     port: process.env.PORT || 3001,
     host: process.env.HOST || 'localhost',
-    corsOrigins: process.env.CORS_ORIGINS || 'http://localhost:3000',
+    corsOrigins: process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001',
   },
   
   // Document Processing
@@ -26,6 +26,7 @@ module.exports = {
     collectionName: 'document_collection',
     persistDirectory: process.env.VECTOR_DB_DIR || '../vectorstore',
     embeddingDimension: 384, // Depends on the embedding model
+    url: process.env.CHROMA_URL || 'http://localhost:8000',
   },
   
   // LLM Configuration
@@ -36,6 +37,7 @@ module.exports = {
     topP: 0.9,
     repetitionPenalty: 1.1,
     maxNewTokens: 1024,
+    serverUrl: process.env.LLM_SERVER_URL || 'http://localhost:8080',
   },
   
   // Embedding Model

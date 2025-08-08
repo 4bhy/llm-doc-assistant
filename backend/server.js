@@ -11,6 +11,7 @@ const morgan = require('morgan');
 const path = require('path');
 const dotenv = require('dotenv');
 const winston = require('winston');
+const fs = require('fs');
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '../.env') });
@@ -19,6 +20,11 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const config = require('../config/app.config');
 
 // Initialize logger
+const logDir = path.resolve(__dirname, '..', path.dirname(config.logging.file));
+const logFileName = path.basename(config.logging.file);
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
 const logger = winston.createLogger({
   level: config.logging.level,
   format: winston.format.combine(
@@ -28,8 +34,8 @@ const logger = winston.createLogger({
   transports: [
     new winston.transports.Console(),
     new winston.transports.File({ 
-      filename: config.logging.file,
-      dirname: path.dirname(config.logging.file),
+      filename: logFileName,
+      dirname: logDir,
     }),
   ],
 });
@@ -40,7 +46,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: config.server.corsOrigins.split(','),
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
 }));
 app.use(express.json());
@@ -55,11 +61,13 @@ app.get('/api/health', (req, res) => {
 const chatRoutes = require('./routes/chat');
 const documentRoutes = require('./routes/documents');
 const adminRoutes = require('./routes/admin');
+const uploadRoutes = require('./routes/upload');
 
 // Register routes
 app.use('/api/chat', chatRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
