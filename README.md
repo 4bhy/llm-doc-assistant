@@ -19,8 +19,8 @@ This application provides a chat interface for querying internal documentation u
 - **Frontend**: Next.js
 - **Backend**: Node.js with Express
 - **Vector Database**: ChromaDB
-- **RAG Framework**: LangChain
-- **LLM Engine**: llama.cpp
+- **RAG Framework**: LangChain with HuggingFaceTransformersEmbeddings
+- **LLM Engine**: llama.cpp with REST API interface
 
 ## Getting Started
 
@@ -33,23 +33,71 @@ This application provides a chat interface for querying internal documentation u
 
 ### Installation
 
-Detailed installation instructions will be provided in the setup guide.
+### Installation Steps
+
+1. Clone the repository
+   ```bash
+   git clone <repository-url>
+   cd llm-doc-assistant
+   ```
+
+2. Install backend dependencies
+   ```bash
+   cd backend
+   npm install
+   ```
+
+3. Install frontend dependencies
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+
+4. Set up the LLM
+   ```bash
+   cd ../scripts
+   bash setup_llama.sh
+   ```
+
+5. Configure the application in `config/app.config.js`
+
+6. Start the services
+   ```bash
+   # Start ChromaDB
+   docker run -d -p 8000:8000 chromadb/chroma
+   
+   # Start backend
+   cd ../backend
+   npm start
+   
+   # Start frontend
+   cd ../frontend
+   npm run dev
+   ```
 
 ## Project Structure
 
 ```
 llm-doc-assistant/
 ├── frontend/           # Next.js frontend
+│   ├── src/            # Frontend source code
+│   └── public/         # Static assets
 ├── backend/            # Node.js backend
+│   ├── controllers/    # API controllers
+│   ├── routes/         # API routes
+│   ├── services/       # Core services
+│   │   ├── langchain.service.js  # RAG pipeline implementation
+│   │   └── processor.js          # Document processing
+│   └── server.js       # Express server setup
 ├── models/             # LLM model files
 ├── data/               # Document corpus
 │   ├── raw/            # Original documents
 │   └── processed/      # Processed chunks
 ├── vectorstore/        # ChromaDB storage
 ├── scripts/            # Utility scripts
-│   ├── ingest.js       # Document ingestion
-│   └── setup.js        # Environment setup
+│   └── setup_llama.sh  # LLM setup script
 └── config/             # Configuration files
+    └── app.config.js   # Application configuration
 ```
 
 ## License
