@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # Frontend Next.js application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:3001/api
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - llm-doc-network
+
+  # Backend Express application
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - HOST=0.0.0.0
+      - CORS_ORIGINS=http://localhost:3000,http://frontend:3000
+      - CHROMA_URL=http://chromadb:8000
+      - LLM_SERVER_URL=http://llama-cpp:8080
+      - VECTOR_DB_DIR=/data/vectorstore
+      - DATA_DIR=/data/documents
+      - LOG_LEVEL=info
+    volumes:
+      - document-data:/data/documents
+      - vector-data:/data/vectorstore
+    depends_on:
+      - chromadb
+      - llama-cpp
+    restart: unless-stopped
+    networks:
+      - llm-doc-network
+
+  # ChromaDB vector database
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma-data:/chroma/chroma
+    environment:
+      - ALLOW_RESET=true
+      - ANONYMIZED_TELEMETRY=false
+    restart: unless-stopped
+    networks:
+      - llm-doc-network
+
+  # llama.cpp server for LLM inference
+  llama-cpp:
+    build:
+      context: ./models
+      dockerfile: Dockerfile.llama
+    ports:
+      - "8080:8080"
+    volumes:
+      - model-data:/models
+    environment:
+      - MODEL_PATH=/models/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+      - CONTEXT_SIZE=4096
+      - NUM_THREADS=4
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    networks:
+      - llm-doc-network
+
+networks:
+  llm-doc-network:
+    driver: bridge
+
+volumes:
+  # Document data persistence
+  document-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DOCUMENT_DATA_PATH:-./data/documents}
+  
+  # Vector database persistence
+  vector-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${VECTOR_DATA_PATH:-./data/vectorstore}
+  
+  # ChromaDB persistence
+  chroma-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CHROMA_DATA_PATH:-./data/chromadb}
+  
+  # LLM model persistence
+  model-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MODEL_DATA_PATH:-./models}

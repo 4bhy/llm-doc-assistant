@@ -1,0 +1,50 @@
+FROM ubuntu:22.04 AS builder
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    build-essential \
+    cmake \
+    wget \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone and build llama.cpp
+WORKDIR /build
+RUN git clone https://github.com/ggerganov/llama.cpp.git
+WORKDIR /build/llama.cpp
+RUN mkdir build && cd build && cmake .. && cmake --build . --config Release
+
+# Download the model
+WORKDIR /models
+RUN wget -O mistral-7b-instruct-v0.2.Q4_K_M.gguf https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf
+
+# Final image
+FROM ubuntu:22.04
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libgomp1 \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy built binaries and model
+WORKDIR /app
+COPY --from=builder /build/llama.cpp/build/bin/server /app/server
+COPY --from=builder /models/mistral-7b-instruct-v0.2.Q4_K_M.gguf /models/
+
+# Create a script to start the server with environment variables
+RUN echo '#!/bin/bash\n\
+/app/server \
+-m ${MODEL_PATH} \
+-c ${CONTEXT_SIZE} \
+-t ${NUM_THREADS} \
+--host 0.0.0.0 \
+--port 8080' > /app/start.sh && chmod +x /app/start.sh
+
+# Expose the port
+EXPOSE 8080
+
+# Start the server
+CMD ["/app/start.sh"]
