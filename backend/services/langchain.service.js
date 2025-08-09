@@ -129,9 +129,16 @@ class LangChainService {
    */
   async callLlamaServer(prompt) {
     try {
+      // Coerce PromptTemplate output or other objects to a string prompt
+      const promptStr = typeof prompt === 'string'
+        ? prompt
+        : (prompt && typeof prompt.toString === 'function')
+          ? prompt.toString()
+          : JSON.stringify(prompt);
+
       // Configure the request to the llama.cpp server
       const response = await axios.post(`${config.llm.serverUrl}/completion`, {
-        prompt,
+        prompt: promptStr,
         temperature: config.llm.temperature,
         top_p: config.llm.topP,
         n_predict: config.llm.maxNewTokens,
@@ -139,9 +146,21 @@ class LangChainService {
       }, {
         timeout: 30000, // 30 seconds timeout
       });
-      
-      // llama.cpp server returns { content: string } or may stream; handle basic case
-      return response.data?.content || String(response.data || '').toString();
+
+      const data = response.data;
+      // Handle multiple possible llama.cpp response shapes
+      if (typeof data === 'string') return data;
+      if (data?.content) return data.content;
+      if (data?.response) return data.response; // some servers
+      if (data?.text) return data.text;
+      if (Array.isArray(data?.choices)) {
+        const texts = data.choices
+          .map((c) => c?.text || c?.message?.content || '')
+          .filter(Boolean);
+        if (texts.length) return texts.join('');
+      }
+      // Fallback to a stringified body
+      return JSON.stringify(data);
     } catch (error) {
       console.error('Error calling llama.cpp server:', error);
       return "I'm sorry, I encountered an error while processing your request.";
